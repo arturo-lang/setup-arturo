@@ -41,6 +41,9 @@ inputs:
     artifacts_only:
         description: 'Skip environment setup, just download and upload artifacts (only works with do=fetch)'
         default: 'false'
+    release:
+        description: 'Make an official release (compile mode only)'
+        default: 'false'
  
 runs:
     using: "composite"
@@ -120,6 +123,7 @@ runs:
             echo "support=$detected_support" >> $GITHUB_ENV
             echo "src=${{ inputs.src }}" >> $GITHUB_ENV
             echo "metadata=${{ inputs.metadata }}" >> $GITHUB_ENV
+            echo "release=${{ inputs.release }}" >> $GITHUB_ENV
           shell: bash
 
         - name: Determine artifact name
@@ -170,6 +174,7 @@ runs:
             echo "Support Level:    ${{ env.support }}"
             echo "Source Ref:       ${{ env.src != '' && env.src || '(latest)' }}"
             echo "Metadata:         ${{ env.metadata != '' && env.metadata || '(none)' }}"
+            echo "Release:          ${{ env.release == 'true' && 'yes' || 'no' }}"
             echo "Artifact Name:    ${{ env.artifact_name }}"
             echo "======================================"
           shell: bash
@@ -314,7 +319,7 @@ runs:
                   fi
                   ${{ env.metadata != '' && format('echo "{0}" > version/metadata', env.metadata) || '' }}
                   export PATH="/usr/local/nim/bin/:$PATH"
-                  ./build.nims --install --mode ${{ env.build_mode }} --log
+                  ./build.nims --install --mode ${{ env.build_mode }} --log${{ env.release == 'true' && ' --release' || '' }}
                   cd ..
                   cp -r $HOME/.arturo/bin/* /usr/local/bin/
                   rm -rf arturo-src
@@ -440,7 +445,7 @@ runs:
           if: inputs.do == 'compile' && (env.os == 'linux' || env.os == 'macos' || env.os == 'web')
           run: |
             cd arturo-src
-            ./build.nims --install --mode ${{ env.build_mode }} --arch ${{ env.arch }} --log
+            ./build.nims --install --mode ${{ env.build_mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}
             
             echo "$HOME/.arturo/bin" >> $GITHUB_PATH
             echo "arturoDistPath=$HOME/.arturo/bin" >> $GITHUB_ENV
@@ -455,7 +460,7 @@ runs:
             export PATH="${{ github.workspace }}/nim/nim-2.2.8/bin":$PATH
 
             cd arturo-src
-            ./build.nims --install --mode ${{ env.mode }} --log
+            ./build.nims --install --mode ${{ env.mode }} --log${{ env.release == 'true' && ' --release' || '' }}
             cd ..
             
             mkdir bin

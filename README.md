@@ -146,6 +146,7 @@ jobs:
 | `create_artifact` | `true`, `false` | `false` | Upload build artifact |
 | `artifact_version` | string | - | Version string for artifact naming (compile mode) |
 | `artifacts_only` | `true`, `false` | `false` | Skip setup, download & re-upload artifacts only (fetch mode) |
+| `release` | `true`, `false` | `false` | It's an official release (compile mode only) |
 
 ## Supported Platforms
 
