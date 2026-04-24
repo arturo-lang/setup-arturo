@@ -291,6 +291,7 @@ runs:
             sync: rsync
             copyback: true
             prepare: |
+              env ASSUME_ALWAYS_YES=yes pkg bootstrap -f
               pkg update -f
 
               pkg install -y wget curl bash ca_root_nss jq
