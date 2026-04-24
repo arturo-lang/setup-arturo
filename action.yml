@@ -287,7 +287,6 @@ runs:
           if: env.os == 'freebsd' && inputs.artifacts_only != 'true'
           uses: vmactions/freebsd-vm@v1
           with:
-            release: "14.2"
             usesh: true
             sync: rsync
             copyback: true
