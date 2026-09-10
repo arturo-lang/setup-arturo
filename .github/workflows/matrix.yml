@@ -108,10 +108,10 @@ jobs:
                 if [ "${{ env.arturoCanRun }}" == "true" ]; then
                     echo "- Checking arturo command..."
                     if command -v arturo &> /dev/null; then
-                        echo "    🎉 All good! `arturo` is available."
+                        echo '    🎉 All good! `arturo` is available.'
                         arturo -v
                     else
-                        echo "    ❌ Failed! `arturo` not found"
+                        echo '    ❌ Failed! `arturo` not found'
                         exit 1
                     fi
                 else
