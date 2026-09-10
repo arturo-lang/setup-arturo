@@ -418,6 +418,9 @@ runs:
 
             brew install nim
 
+            # on older glibc (e.g. ubuntu-22.04), brew pulls its own binutils; keep using the system ld
+            brew unlink binutils 2>/dev/null || true
+
             echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
           shell: bash
 
