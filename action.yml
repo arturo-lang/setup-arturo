@@ -462,7 +462,7 @@ runs:
             cd arturo-src
             ./build.nims --install --mode ${{ env.mode }} --log${{ env.release == 'true' && ' --release' || '' }}
             cd ..
-            
+             
             mkdir bin
             if [ "${{ env.mode }}" = "full" ]; then
                 cp arturo-src/src/extras/webview/deps/dlls/x64/webview.dll bin
