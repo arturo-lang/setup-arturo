@@ -391,7 +391,7 @@ runs:
 
         - name: Checkout Arturo repo (Linux/macOS/Windows)
           if: inputs.do == 'compile' && env.os != 'freebsd'
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
           with:
             repository: arturo-lang/arturo
             submodules: recursive
