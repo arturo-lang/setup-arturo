@@ -493,7 +493,7 @@ runs:
 
         - name: Upload artifact
           if: inputs.create_artifact == 'true'
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ${{ steps.release-info.outputs.artifact_name || env.artifact_name }}
             path: ${{ env.arturoDistPath }}/*
