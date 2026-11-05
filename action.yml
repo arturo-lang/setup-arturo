@@ -350,6 +350,7 @@ runs:
           with:
             update: true
             cache: true
+            suppress-deprecation-warnings: msystem-mingw64
             install: >-
               git
               base-devel
