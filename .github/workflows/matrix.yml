@@ -82,7 +82,7 @@ jobs:
                     (matrix.os == 'windows') && 'msys2 {0}'   || 
                                                 'bash'        }}
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
  
             - name: Install Arturo
               uses: ./

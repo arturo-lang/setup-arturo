@@ -21,7 +21,7 @@ jobs:
     windows-2025-amd64:
         runs-on: windows-2025
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
             
             - name: Install Arturo
               uses: ./
