@@ -427,8 +427,14 @@ runs:
         - name: Install Nim (macOS)
           if: inputs.do == 'compile' && env.os == 'macos'
           run: |
-            brew update
-            brew install nim
+            nim_arch=$([ "${{ env.arch }}" = "arm64" ] && echo "arm64" || echo "x64")
+
+            mkdir nim
+            curl -fL https://nim-lang.org/download/nim-2.4.0-macosx_${nim_arch}.tar.xz -o nim.tar.xz
+            tar -xJf nim.tar.xz -C nim
+            rm nim.tar.xz
+
+            echo "$PWD/nim/nim-2.4.0/bin" >> $GITHUB_PATH
           shell: bash
 
         - name: Install Nim (Windows)
