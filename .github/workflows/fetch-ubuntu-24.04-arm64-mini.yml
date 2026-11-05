@@ -21,7 +21,7 @@ jobs:
     ubuntu-2404-arm64-mini:
         runs-on: ubuntu-24.04-arm
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
             
             - name: Install Arturo
               uses: ./
