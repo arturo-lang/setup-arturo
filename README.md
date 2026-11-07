@@ -147,6 +147,7 @@ jobs:
 | `artifact_version` | string | - | Version string for artifact naming (compile mode) |
 | `artifacts_only` | `true`, `false` | `false` | Skip setup, download & re-upload artifacts only (fetch mode) |
 | `release` | `true`, `false` | `false` | It's an official release (compile mode only) |
+| `pgo` | `true`, `false` | `false` | Build with profile-guided optimization: slower build, faster binary (compile mode only) |
 
 ## Supported Platforms
 
