@@ -44,6 +44,9 @@ inputs:
     release:
         description: 'Make an official release (compile mode only)'
         default: 'false'
+    pgo:
+        description: 'Build with profile-guided optimization: slower build, faster binary (compile mode only, needs an Arturo version that supports --pgo)'
+        default: 'false'
  
 runs:
     using: "composite"
@@ -124,6 +127,11 @@ runs:
             echo "src=${{ inputs.src }}" >> $GITHUB_ENV
             echo "metadata=${{ inputs.metadata }}" >> $GITHUB_ENV
             echo "release=${{ inputs.release }}" >> $GITHUB_ENV
+            if [ "${{ inputs.pgo }}" = "true" ] && [ "$detected_build_mode" != "web" ]; then
+                echo "pgo=true" >> $GITHUB_ENV
+            else
+                echo "pgo=false" >> $GITHUB_ENV
+            fi
           shell: bash
 
         - name: Determine artifact name
@@ -175,6 +183,7 @@ runs:
             echo "Source Ref:       ${{ env.src != '' && env.src || '(latest)' }}"
             echo "Metadata:         ${{ env.metadata != '' && env.metadata || '(none)' }}"
             echo "Release:          ${{ env.release == 'true' && 'yes' || 'no' }}"
+            echo "PGO:              ${{ env.pgo == 'true' && 'yes' || 'no' }}"
             echo "Artifact Name:    ${{ env.artifact_name }}"
             echo "======================================"
           shell: bash
@@ -319,7 +328,7 @@ runs:
                   fi
                   ${{ env.metadata != '' && format('echo "{0}" > version/metadata', env.metadata) || '' }}
                   export PATH="/usr/local/nim/bin/:$PATH"
-                  ./build.nims --install --mode ${{ env.build_mode }} --log${{ env.release == 'true' && ' --release' || '' }}
+                  ./build.nims --install --mode ${{ env.build_mode }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
                   cd ..
                   cp -r $HOME/.arturo/bin/* /usr/local/bin/
                   rm -rf arturo-src
@@ -455,7 +464,7 @@ runs:
           if: inputs.do == 'compile' && (env.os == 'linux' || env.os == 'macos' || env.os == 'web')
           run: |
             cd arturo-src
-            ./build.nims --install --mode ${{ env.build_mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}
+            ./build.nims --install --mode ${{ env.build_mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
             
             echo "$HOME/.arturo/bin" >> $GITHUB_PATH
             echo "arturoDistPath=$HOME/.arturo/bin" >> $GITHUB_ENV
@@ -470,7 +479,7 @@ runs:
             export PATH="${{ github.workspace }}/nim/nim-2.4.0/bin":$PATH
 
             cd arturo-src
-            ./build.nims --install --mode ${{ env.mode }} --log${{ env.release == 'true' && ' --release' || '' }}
+            ./build.nims --install --mode ${{ env.mode }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
             cd ..
             
             mkdir bin
