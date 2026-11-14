@@ -440,18 +440,18 @@ runs:
             nim_arch=$([ "${{ env.arch }}" = "arm64" ] && echo "arm64" || echo "x64")
 
             mkdir nim
-            curl -fL https://nim-lang.org/download/nim-2.4.0-macosx_${nim_arch}.tar.xz -o nim.tar.xz
+            curl -fL https://nim-lang.org/download/nim-2.4.2-macosx_${nim_arch}.tar.xz -o nim.tar.xz
             tar -xJf nim.tar.xz -C nim
             rm nim.tar.xz
 
-            echo "$PWD/nim/nim-2.4.0/bin" >> $GITHUB_PATH
+            echo "$PWD/nim/nim-2.4.2/bin" >> $GITHUB_PATH
           shell: bash
 
         - name: Install Nim (Windows)
           if: inputs.do == 'compile' && env.os == 'windows'
           run: |
             mkdir nim
-            curl -L https://nim-lang.org/download/nim-2.4.0_x64.zip -o nim.zip
+            curl -L https://nim-lang.org/download/nim-2.4.2_x64.zip -o nim.zip
             7z x nim.zip -onim
             rm nim.zip
           shell: msys2 {0}
@@ -476,7 +476,7 @@ runs:
         - name: Build Arturo (Windows)
           if: inputs.do == 'compile' && env.os == 'windows'
           run: |
-            export PATH="${{ github.workspace }}/nim/nim-2.4.0/bin":$PATH
+            export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH
 
             cd arturo-src
             ./build.nims --install --mode ${{ env.mode }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
