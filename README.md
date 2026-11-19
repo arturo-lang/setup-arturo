@@ -154,7 +154,7 @@ jobs:
 | OS | Architecture | Mode | Runner |
 |----|--------------|------|--------|
 | Linux | amd64, arm64 | mini, full | ubuntu-latest, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-24.04 |
-| Windows | amd64 | mini, full | windows-latest |
+| Windows | amd64, arm64 | mini, full | windows-latest, windows-11-arm |
 | macOS | amd64, arm64 | mini, full | macOS-15-intel, macos-latest |
 | FreeBSD | amd64 | mini, full | ubuntu-latest (via VM) |
 | Web | js | mini | ubuntu-latest |
