@@ -462,10 +462,21 @@ runs:
         - name: Install Nim (Windows)
           if: inputs.do == 'compile' && env.os == 'windows'
           run: |
+            if [ "${{ env.arch }}" = "arm64" ]; then
+                nim_url="https://github.com/drkameleon/nim-prebuilts/releases/download/v2.4.2/nim-2.4.2-windows_arm64.zip"
+            else
+                nim_url="https://nim-lang.org/download/nim-2.4.2_x64.zip"
+            fi
+
             mkdir nim
-            curl -L https://nim-lang.org/download/nim-2.4.2_x64.zip -o nim.zip
+            curl -fL "$nim_url" -o nim.zip
             7z x nim.zip -onim
             rm nim.zip
+
+            # there's no GCC on Windows/arm64: CLANGARM64 comes with clang
+            if [ "${{ env.arch }}" = "arm64" ]; then
+                printf '\ncc = clang\n' >> nim/nim-2.4.2/config/nim.cfg
+            fi
           shell: msys2 {0}
 
         ##====================================
