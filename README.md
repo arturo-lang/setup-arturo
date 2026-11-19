@@ -47,7 +47,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install Arturo
         uses: arturo-lang/setup-arturo@v2
@@ -94,7 +94,7 @@ jobs:
                                       'bash'        }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install Arturo
         uses: arturo-lang/setup-arturo@v2
