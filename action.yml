@@ -527,13 +527,15 @@ runs:
                     wvout=$wv/deps/dlls/x64
 
                     rm -f $wvout/*
+                    # webview-windows.cc only pulls in the declarations: the implementation lives in webview-windows.h
+                    printf '#include "webview-windows.h"\n' > $wv/webview-arm64.cc
                     cp $wv2/arm64/WebView2Loader.dll $wvout/
                     cp $wv2/arm64/WebView2Loader.dll.lib $wvout/WebView2Loader.lib
 
                     clang++ -shared -O2 -std=c++17 \
                         -DWEBVIEW_EDGE=1 -DWEBVIEW_API='__declspec(dllexport)' \
                         -I$wv2/include \
-                        $wv/webview-windows.cc \
+                        $wv/webview-arm64.cc \
                         $wv2/arm64/WebView2Loader.dll.lib \
                         -lole32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -lversion \
                         -o $wvout/webview.dll \
