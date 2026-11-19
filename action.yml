@@ -381,6 +381,7 @@ runs:
               ${{ inputs.do == 'compile' && env.mode == 'full' && format('{0}-mpfr', env.msys_pkg) || '' }}
               ${{ inputs.do == 'compile' && env.mode == 'full' && env.arch == 'arm64' && format('{0}-sqlite3', env.msys_pkg) || '' }}
               ${{ inputs.do == 'compile' && env.arch == 'arm64' && format('{0}-pcre', env.msys_pkg) || '' }}
+              ${{ inputs.do == 'compile' && env.mode == 'full' && env.arch == 'arm64' && format('{0}-openssl', env.msys_pkg) || '' }}
  
         ######################################
         ######################################
@@ -511,6 +512,11 @@ runs:
 
                 # pfd.cc uses std::function without including <functional> (libstdc++ pulls it in, libc++ doesn't)
                 sed -i 's|#include <chrono>.*|&\n#include <functional>|' src/extras/pfd/pfd.cc
+
+                if [ "${{ env.mode }}" = "full" ]; then
+                    # same for OpenSSL: x64-only static libs, use the CLANGARM64 ones
+                    cp ${{ env.msys_prefix }}/lib/libssl.a ${{ env.msys_prefix }}/lib/libcrypto.a src/deps/openssl/windows/amd64/
+                fi
             fi
 
             ./build.nims --install --mode ${{ env.mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
