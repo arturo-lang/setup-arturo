@@ -47,6 +47,9 @@ inputs:
     pgo:
         description: 'Build with profile-guided optimization: slower build, faster binary (compile mode only, needs an Arturo version that supports --pgo)'
         default: 'false'
+    timezone:
+        description: 'Time zone to set the runner to (GitHub-hosted runners only; empty = leave it as is)'
+        default: 'UTC'
  
 runs:
     using: "composite"
@@ -193,8 +196,42 @@ runs:
             echo "Metadata:         ${{ env.metadata != '' && env.metadata || '(none)' }}"
             echo "Release:          ${{ env.release == 'true' && 'yes' || 'no' }}"
             echo "PGO:              ${{ env.pgo == 'true' && 'yes' || 'no' }}"
+            echo "Time Zone:        ${{ (inputs.timezone != '' && runner.environment == 'github-hosted') && inputs.timezone || '(unchanged)' }}"
             echo "Artifact Name:    ${{ env.artifact_name }}"
             echo "======================================"
+          shell: bash
+
+        ######################################
+        ######################################
+        ## TIME ZONE
+        ######################################
+        ######################################
+
+        # Not all GitHub-hosted runners are on UTC (e.g. `windows-11-arm` is on Pacific Time),
+        # which makes anything depending on the local time zone behave differently between them.
+        # Self-hosted runners are never touched: the change would outlive the job.
+
+        - name: Set time zone (Windows)
+          if: inputs.timezone != '' && runner.environment == 'github-hosted' && runner.os == 'Windows'
+          run: |
+            tzutil /s "${{ inputs.timezone }}"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            echo "Time zone: $(tzutil /g)"
+          shell: pwsh
+
+        - name: Set time zone (Linux/macOS)
+          if: inputs.timezone != '' && runner.environment == 'github-hosted' && runner.os != 'Windows'
+          run: |
+            if [ "${{ runner.os }}" = "Linux" ]; then
+                sudo timedatectl set-timezone "${{ inputs.timezone }}"
+            else
+                if [ ! -f "/usr/share/zoneinfo/${{ inputs.timezone }}" ]; then
+                    echo "ERROR: Unknown time zone: ${{ inputs.timezone }}"
+                    exit 1
+                fi
+                sudo ln -sf "/usr/share/zoneinfo/${{ inputs.timezone }}" /etc/localtime
+            fi
+            echo "Time zone: $(date +%Z)"
           shell: bash
 
         ######################################
