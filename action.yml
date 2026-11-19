@@ -572,6 +572,32 @@ runs:
 
             cp arturo-src/bin/arturo.exe bin
 
+            # Windows/arm64: collect the arm64 deps we used, laid out as in the Arturo repo
+            # (so they can be committed there, next to the existing amd64 ones)
+            if [ "${{ env.arch }}" = "arm64" ] && [ "${{ env.mode }}" = "full" ]; then
+                deps="$(cygpath -u '${{ runner.temp }}')/arturo-deps"
+                wvout=arturo-src/src/extras/webview/deps/dlls/x64
+
+                mkdir -p $deps/src/deps/pcre/windows/arm64 \
+                         $deps/src/deps/openssl/windows/arm64 \
+                         $deps/src/extras/webview/deps/dlls/arm64 \
+                         $deps/runtime
+
+                cp ${{ env.msys_prefix }}/lib/libpcre.a $deps/src/deps/pcre/windows/arm64/
+                cp ${{ env.msys_prefix }}/lib/libssl.a ${{ env.msys_prefix }}/lib/libcrypto.a $deps/src/deps/openssl/windows/arm64/
+                cp $wvout/webview.dll $wvout/libwebview.dll.a $wvout/WebView2Loader.dll $wvout/WebView2Loader.lib $deps/src/extras/webview/deps/dlls/arm64/
+
+                # runtime DLLs (the amd64 ones are served from S3)
+                cp bin/*.dll $deps/runtime/
+                rm -f $deps/runtime/webview.dll $deps/runtime/WebView2Loader.dll
+
+                pacman -Q | grep -E '${{ env.msys_pkg }}-(pcre|openssl|gmp|mpfr|sqlite3?|libc\+\+|libunwind|libwinpthread)' > $deps/VERSIONS.txt || true
+
+                echo "arturoDepsPath=${{ runner.temp }}/arturo-deps" >> $GITHUB_ENV
+                echo "Collected arm64 deps:"
+                find $deps -type f
+            fi
+
             cp bin/* /usr/bin
             
             rm -rf arturo-src
