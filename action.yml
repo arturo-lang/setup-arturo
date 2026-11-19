@@ -516,8 +516,8 @@ runs:
                     cp ${{ env.msys_prefix }}/bin/libsqlite3-0.dll bin/sqlite3_64.dll
                     cp ${{ env.msys_prefix }}/bin/libc++.dll bin
                     cp ${{ env.msys_prefix }}/bin/libunwind.dll bin
-                    cp arturo-src/src/extras/webview/deps/dlls/x64/webview.dll bin
-                    cp arturo-src/src/extras/webview/deps/dlls/x64/WebView2Loader.dll bin
+                    cp arturo-src/src/extras/webview/deps/dlls/arm64/webview.dll bin
+                    cp arturo-src/src/extras/webview/deps/dlls/arm64/WebView2Loader.dll bin
                 else
                     cp arturo-src/src/extras/webview/deps/dlls/x64/webview.dll bin
                     cp arturo-src/src/extras/webview/deps/dlls/x64/WebView2Loader.dll bin
