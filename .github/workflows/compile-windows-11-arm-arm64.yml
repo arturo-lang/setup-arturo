@@ -28,6 +28,7 @@ jobs:
               with: 
                 do: compile
                 arch: arm64
+                src: windows-arm64 # TEMPORARY: until arturo-lang/arturo#2522 is merged
                 token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Test Arturo
