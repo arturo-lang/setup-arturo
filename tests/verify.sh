@@ -28,4 +28,10 @@ if [ "$DETECTED_RELEASE" != "$EXPECTED_RELEASE" ]; then
     exit 1
 fi
 
+DETECTED_TIME=$(arturo tests/timezone.art | tr -d '\r' | sed 's/[[:space:]]*$//')
+if [ "$DETECTED_TIME" != "March 8 2009 7:30AM" ]; then
+    echo "UNEXPECTED TIME (not on UTC?): Expected March 8 2009 7:30AM, got $DETECTED_TIME"
+    exit 1
+fi
+
 echo "✓ All checks passed: $EXPECTED_OS / $EXPECTED_ARCH / $EXPECTED_RELEASE"

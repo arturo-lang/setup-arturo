@@ -1,0 +1,5 @@
+; adding 12 hours across a DST change (March 8 2009, in the US)
+; gives a different result unless we're on UTC
+fmt: "MMMM d yyyy h:mmtt"
+initial: to :date .format: fmt "March 7 2009 7:30PM"
+print to :string .format: fmt after.hours: 12 initial
