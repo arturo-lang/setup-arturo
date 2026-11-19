@@ -516,6 +516,26 @@ runs:
                 if [ "${{ env.mode }}" = "full" ]; then
                     # same for OpenSSL: x64-only static libs, use the CLANGARM64 ones
                     cp ${{ env.msys_prefix }}/lib/libssl.a ${{ env.msys_prefix }}/lib/libcrypto.a src/deps/openssl/windows/amd64/
+
+                    # webview: Arturo links whatever is in deps/dlls/x64, so put arm64 builds there instead
+                    #   - WebView2Loader.dll: from the bundled WebView2 NuGet package (it has arm64)
+                    #   - webview.dll: no pre-built arm64 one anywhere, build it with clang++
+                    wv=src/extras/webview
+                    wv2=$wv/deps/pkg/microsoft.web.webview2.1.0.664.37/build/native
+                    wvout=$wv/deps/dlls/x64
+
+                    rm -f $wvout/*
+                    cp $wv2/arm64/WebView2Loader.dll $wvout/
+                    cp $wv2/arm64/WebView2Loader.dll.lib $wvout/WebView2Loader.lib
+
+                    clang++ -shared -O2 -std=c++17 \
+                        -DWEBVIEW_EDGE=1 -DWEBVIEW_API='__declspec(dllexport)' \
+                        -I$wv2/include \
+                        $wv/webview-windows.cc \
+                        $wv2/arm64/WebView2Loader.dll.lib \
+                        -lole32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -lversion \
+                        -o $wvout/webview.dll \
+                        -Wl,--out-implib,$wvout/libwebview.dll.a
                 fi
             fi
 
