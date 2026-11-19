@@ -176,6 +176,8 @@ jobs:
 > Not all GitHub-hosted runners are on UTC (e.g. `windows-11-arm` is on Pacific Time), so anything depending on the local time zone - like date arithmetic across DST changes - may give different results on each of them. That's why, by default, the action sets GitHub-hosted runners to UTC (via `tzutil` on Windows; `timedatectl`, or `/etc/localtime`, on Linux/macOS).
 >
 > Self-hosted runners are never touched, since the change would outlive the job. To leave GitHub-hosted runners as they are, set `timezone: ''`.
+>
+> Any other time zone has to be named the way the runner's OS does: e.g. `Europe/Madrid` on Linux/macOS, but `Romance Standard Time` on Windows (`UTC` works everywhere).
 
 > [!NOTE] 
 > ### Legacy Support
