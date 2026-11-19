@@ -516,6 +516,8 @@ runs:
                 if [ "${{ env.mode }}" = "full" ]; then
                     # same for OpenSSL: x64-only static libs, use the CLANGARM64 ones
                     cp ${{ env.msys_prefix }}/lib/libssl.a ${{ env.msys_prefix }}/lib/libcrypto.a src/deps/openssl/windows/amd64/
+                    # ...which also has an x64 libws2_32.a that shadows the system one
+                    rm -f src/deps/openssl/windows/amd64/libws2_32.a
 
                     # webview: Arturo links whatever is in deps/dlls/x64, so put arm64 builds there instead
                     #   - WebView2Loader.dll: from the bundled WebView2 NuGet package (it has arm64)
