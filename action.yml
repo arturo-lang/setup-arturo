@@ -380,8 +380,6 @@ runs:
               ${{ env.msys_pkg }}-toolchain
               ${{ inputs.do == 'compile' && env.mode == 'full' && format('{0}-mpfr', env.msys_pkg) || '' }}
               ${{ inputs.do == 'compile' && env.mode == 'full' && env.arch == 'arm64' && format('{0}-sqlite3', env.msys_pkg) || '' }}
-              ${{ inputs.do == 'compile' && env.arch == 'arm64' && format('{0}-pcre', env.msys_pkg) || '' }}
-              ${{ inputs.do == 'compile' && env.mode == 'full' && env.arch == 'arm64' && format('{0}-openssl', env.msys_pkg) || '' }}
  
         ######################################
         ######################################
@@ -505,43 +503,6 @@ runs:
             export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH
 
             cd arturo-src
-
-            # Arturo only bundles an x64 libpcre.a for Windows: use the CLANGARM64 one instead
-            if [ "${{ env.arch }}" = "arm64" ]; then
-                cp ${{ env.msys_prefix }}/lib/libpcre.a src/deps/pcre/windows/amd64/libpcre.a
-
-                # pfd.cc uses std::function without including <functional> (libstdc++ pulls it in, libc++ doesn't)
-                sed -i 's|#include <chrono>.*|&\n#include <functional>|' src/extras/pfd/pfd.cc
-
-                if [ "${{ env.mode }}" = "full" ]; then
-                    # same for OpenSSL: x64-only static libs, use the CLANGARM64 ones
-                    cp ${{ env.msys_prefix }}/lib/libssl.a ${{ env.msys_prefix }}/lib/libcrypto.a src/deps/openssl/windows/amd64/
-                    # ...which also has an x64 libws2_32.a that shadows the system one
-                    rm -f src/deps/openssl/windows/amd64/libws2_32.a
-
-                    # webview: Arturo links whatever is in deps/dlls/x64, so put arm64 builds there instead
-                    #   - WebView2Loader.dll: from the bundled WebView2 NuGet package (it has arm64)
-                    #   - webview.dll: no pre-built arm64 one anywhere, build it with clang++
-                    wv=src/extras/webview
-                    wv2=$wv/deps/pkg/microsoft.web.webview2.1.0.664.37/build/native
-                    wvout=$wv/deps/dlls/x64
-
-                    rm -f $wvout/*
-                    # webview-windows.cc only pulls in the declarations: the implementation lives in webview-windows.h
-                    printf '#include "webview-windows.h"\n' > $wv/webview-arm64.cc
-                    cp $wv2/arm64/WebView2Loader.dll $wvout/
-                    cp $wv2/arm64/WebView2Loader.dll.lib $wvout/WebView2Loader.lib
-
-                    clang++ -shared -O2 -std=c++17 \
-                        -DWEBVIEW_EDGE=1 -DWEBVIEW_API='__declspec(dllexport)' \
-                        -I$wv2/include \
-                        $wv/webview-arm64.cc \
-                        $wv2/arm64/WebView2Loader.dll.lib \
-                        -lole32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -lversion \
-                        -o $wvout/webview.dll \
-                        -Wl,--out-implib,$wvout/libwebview.dll.a
-                fi
-            fi
 
             ./build.nims --install --mode ${{ env.mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
             cd ..
