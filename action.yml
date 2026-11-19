@@ -137,11 +137,9 @@ runs:
             if [ "$detected_os" = "windows" ] && [ "$build_arch" = "arm64" ]; then
                 echo "msys_system=CLANGARM64" >> $GITHUB_ENV
                 echo "msys_pkg=mingw-w64-clang-aarch64" >> $GITHUB_ENV
-                echo "msys_prefix=/clangarm64" >> $GITHUB_ENV
             else
                 echo "msys_system=MINGW64" >> $GITHUB_ENV
                 echo "msys_pkg=mingw-w64-x86_64" >> $GITHUB_ENV
-                echo "msys_prefix=/mingw64" >> $GITHUB_ENV
             fi
           shell: bash
 
