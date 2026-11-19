@@ -14,11 +14,11 @@ on:
     workflow_dispatch:
 
 concurrency: 
-    group: ${{ github.workflow }}-windows-11-arm-arm64-mini-${{ github.ref }}
+    group: ${{ github.workflow }}-windows-11-arm64-${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
-    windows-11-arm-arm64-mini:
+    windows-11-arm64:
         runs-on: windows-11-arm
         steps:
             - uses: actions/checkout@v6
@@ -29,10 +29,9 @@ jobs:
                 do: compile
                 arch: arm64
                 src: windows-arm64 # TEMPORARY: until arturo-lang/arturo#2522 is merged
-                mode: mini
                 token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Test Arturo
               run: |
-                tests/verify.sh windows arm64 mini
+                tests/verify.sh windows arm64 full
               shell: "msys2 {0}"
