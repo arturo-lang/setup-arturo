@@ -47,7 +47,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install Arturo
         uses: arturo-lang/setup-arturo@v2
@@ -69,16 +69,18 @@ jobs:
 jobs:
   test:
     runs-on: ${{ 
-      (matrix.os == 'windows')                         && 'windows-latest' || 
-      (matrix.os == 'macos' && matrix.arch == 'arm64') && 'macos-latest'   || 
-      (matrix.os == 'macos')                           && 'macOS-15-intel' || 
-                                                          'ubuntu-latest'  }}
+      (matrix.os == 'windows' && matrix.arch == 'arm64') && 'windows-11-arm' ||
+      (matrix.os == 'windows')                           && 'windows-latest' || 
+      (matrix.os == 'macos' && matrix.arch == 'arm64')   && 'macos-latest'   || 
+      (matrix.os == 'macos')                             && 'macOS-15-intel' || 
+                                                            'ubuntu-latest'  }}
     strategy:
       matrix:
         include: 
           - {os: linux,   arch: amd64, mode: full}
           - {os: linux,   arch: arm64, mode: mini}
           - {os: windows, arch: amd64, mode: full}
+          - {os: windows, arch: arm64, mode: full, do: compile}
           - {os: macos,   arch: amd64, mode: full}
           - {os: macos,   arch: arm64, mode: full}
           - {os: freebsd, arch: amd64, mode: full}
@@ -92,12 +94,13 @@ jobs:
                                       'bash'        }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Install Arturo
         uses: arturo-lang/setup-arturo@v2
         with: 
           token: ${{ secrets.GITHUB_TOKEN }}
+          do: ${{ matrix.do || 'fetch' }}
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
           mode: ${{ matrix.mode }}
@@ -105,6 +108,9 @@ jobs:
       - name: Test
         run: arturo tests/test.art
 ```
+
+> [!NOTE]
+> There are no pre-built Windows/arm64 releases yet: on `windows-11-arm`, use `do: compile` (as above).
 
 ### Compilation from source
 
@@ -151,13 +157,18 @@ jobs:
 
 ## Supported Platforms
 
-| OS | Architecture | Mode | Runner |
-|----|--------------|------|--------|
-| Linux | amd64, arm64 | mini, full | ubuntu-latest, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-24.04 |
-| Windows | amd64 | mini, full | windows-latest |
-| macOS | amd64, arm64 | mini, full | macOS-15-intel, macos-latest |
-| FreeBSD | amd64 | mini, full | ubuntu-latest (via VM) |
-| Web | js | mini | ubuntu-latest |
+| OS | Architecture | Mode | Fetch | Compile | Runner |
+|----|--------------|------|:-----:|:-------:|--------|
+| Linux | amd64, arm64 | mini, full | ✅ | ✅ | ubuntu-latest, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-24.04 |
+| Windows | amd64 | mini, full | ✅ | ✅ | windows-latest |
+| Windows | arm64 | mini, full | ❌ | ✅ | windows-11-arm |
+| macOS | amd64, arm64 | mini, full | ✅ | ✅ | macOS-15-intel, macos-latest |
+| FreeBSD | amd64 | mini, full | ✅ | ✅ | ubuntu-latest (via VM) |
+| Web | js | mini | ✅ | ✅ | ubuntu-latest |
+
+> [!NOTE]
+> ### Windows on ARM
+> On `windows-11-arm`, the action uses MSYS2's `CLANGARM64` environment (there's no GCC for Windows/arm64) along with a pre-built Nim for arm64, so Arturo is compiled with clang. Your steps can still use `shell: msys2 {0}`, exactly as on `windows-latest`.
 
 > [!NOTE] 
 > ### Legacy Support

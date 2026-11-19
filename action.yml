@@ -132,6 +132,15 @@ runs:
             else
                 echo "pgo=false" >> $GITHUB_ENV
             fi
+
+            # MSYS2 environment (Windows only)
+            if [ "$detected_os" = "windows" ] && [ "$build_arch" = "arm64" ]; then
+                echo "msys_system=CLANGARM64" >> $GITHUB_ENV
+                echo "msys_pkg=mingw-w64-clang-aarch64" >> $GITHUB_ENV
+            else
+                echo "msys_system=MINGW64" >> $GITHUB_ENV
+                echo "msys_pkg=mingw-w64-x86_64" >> $GITHUB_ENV
+            fi
           shell: bash
 
         - name: Determine artifact name
@@ -357,6 +366,7 @@ runs:
           if: env.os == 'windows' && inputs.artifacts_only != 'true'
           uses: msys2/setup-msys2@v2
           with:
+            msystem: ${{ env.msys_system }}
             update: true
             cache: true
             suppress-deprecation-warnings: msystem-mingw64
@@ -365,8 +375,8 @@ runs:
               base-devel
               p7zip
               unzip
-              mingw-w64-x86_64-toolchain
-              ${{ inputs.do == 'compile' && env.mode == 'full' && 'mingw-w64-x86_64-mpfr' || '' }}
+              ${{ env.msys_pkg }}-toolchain
+              ${{ inputs.do == 'compile' && env.mode == 'full' && format('{0}-mpfr', env.msys_pkg) || '' }}
  
         ######################################
         ######################################
@@ -450,10 +460,21 @@ runs:
         - name: Install Nim (Windows)
           if: inputs.do == 'compile' && env.os == 'windows'
           run: |
+            if [ "${{ env.arch }}" = "arm64" ]; then
+                nim_url="https://github.com/drkameleon/nim-prebuilts/releases/download/v2.4.2/nim-2.4.2-windows_arm64.zip"
+            else
+                nim_url="https://nim-lang.org/download/nim-2.4.2_x64.zip"
+            fi
+
             mkdir nim
-            curl -L https://nim-lang.org/download/nim-2.4.2_x64.zip -o nim.zip
+            curl -fL "$nim_url" -o nim.zip
             7z x nim.zip -onim
             rm nim.zip
+
+            # there's no GCC on Windows/arm64: CLANGARM64 comes with clang
+            if [ "${{ env.arch }}" = "arm64" ]; then
+                printf '\ncc = clang\n' >> nim/nim-2.4.2/config/nim.cfg
+            fi
           shell: msys2 {0}
 
         ##====================================
@@ -479,21 +500,34 @@ runs:
             export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH
 
             cd arturo-src
-            ./build.nims --install --mode ${{ env.mode }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
+
+            ./build.nims --install --mode ${{ env.mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
             cd ..
             
             mkdir bin
+            # runtime DLLs: from S3 (deps/amd64 or deps/arm64)
+            runtime_dlls="libwinpthread-1.dll"
+
             if [ "${{ env.mode }}" = "full" ]; then
-                cp arturo-src/src/extras/webview/deps/dlls/x64/webview.dll bin
-                cp arturo-src/src/extras/webview/deps/dlls/x64/WebView2Loader.dll bin
-                curl -L https://arturo-lang.s3.amazonaws.com/libgmp-10.dll -o bin/libgmp-10.dll
-                curl -L https://arturo-lang.s3.amazonaws.com/libmpfr-6.dll -o bin/libmpfr-6.dll
-                curl -L https://arturo-lang.s3.amazonaws.com/sqlite3_64.dll -o bin/sqlite3_64.dll
-                curl -L https://arturo-lang.s3.amazonaws.com/libgcc_s_seh-1.dll -o bin/libgcc_s_seh-1.dll
+                # webview DLLs: straight from the Arturo repo (where the amd64 ones live under x64/)
+                webview_dlls="arturo-src/src/extras/webview/deps/dlls/$([ "${{ env.arch }}" = "arm64" ] && echo arm64 || echo x64)"
+                cp $webview_dlls/webview.dll $webview_dlls/WebView2Loader.dll bin
+
+                # + the libraries used, along with the C/C++ runtime of the compiler (GCC for amd64, clang for arm64)
+                runtime_dlls="$runtime_dlls libgmp-10.dll libmpfr-6.dll sqlite3_64.dll"
+                if [ "${{ env.arch }}" = "arm64" ]; then
+                    runtime_dlls="$runtime_dlls libc++.dll libunwind.dll"
+                else
+                    runtime_dlls="$runtime_dlls libgcc_s_seh-1.dll"
+                fi
             fi
 
+            for dll in $runtime_dlls; do
+                # "+" has to be encoded in S3 URLs (e.g. libc++.dll)
+                curl -fL "https://arturo-lang.s3.amazonaws.com/deps/${{ env.arch }}/${dll//+/%2B}" -o "bin/$dll"
+            done
+
             curl -L https://curl.se/ca/cacert.pem -o bin/cacert.pem
-            cp /mingw64/bin/libwinpthread-1.dll bin
 
             cp arturo-src/bin/arturo.exe bin
 
