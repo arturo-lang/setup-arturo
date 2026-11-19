@@ -28,7 +28,6 @@ jobs:
               with: 
                 do: compile
                 arch: arm64
-                src: windows-arm64 # TEMPORARY: until arturo-lang/arturo#2522 is merged
                 mode: mini
                 token: ${{ secrets.GITHUB_TOKEN }}
 
