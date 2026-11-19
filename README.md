@@ -154,6 +154,7 @@ jobs:
 | `artifacts_only` | `true`, `false` | `false` | Skip setup, download & re-upload artifacts only (fetch mode) |
 | `release` | `true`, `false` | `false` | It's an official release (compile mode only) |
 | `pgo` | `true`, `false` | `false` | Build with profile-guided optimization: slower build, faster binary (compile mode only) |
+| `timezone` | time zone name, or empty | `UTC` | Time zone to set the runner to - GitHub-hosted runners only (empty = leave it as is) |
 
 ## Supported Platforms
 
@@ -169,6 +170,14 @@ jobs:
 > [!NOTE]
 > ### Windows on ARM
 > On `windows-11-arm`, the action uses MSYS2's `CLANGARM64` environment (there's no GCC for Windows/arm64) along with a pre-built Nim for arm64, so Arturo is compiled with clang. Your steps can still use `shell: msys2 {0}`, exactly as on `windows-latest`.
+
+> [!NOTE]
+> ### Time Zone
+> Not all GitHub-hosted runners are on UTC (e.g. `windows-11-arm` is on Pacific Time), so anything depending on the local time zone - like date arithmetic across DST changes - may give different results on each of them. That's why, by default, the action sets GitHub-hosted runners to UTC (via `tzutil` on Windows; `timedatectl`, or `/etc/localtime`, on Linux/macOS).
+>
+> Self-hosted runners are never touched, since the change would outlive the job. To leave GitHub-hosted runners as they are, set `timezone: ''`.
+>
+> Any other time zone has to be named the way the runner's OS does: e.g. `Europe/Madrid` on Linux/macOS, but `Romance Standard Time` on Windows (`UTC` works everywhere).
 
 > [!NOTE] 
 > ### Legacy Support
