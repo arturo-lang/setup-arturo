@@ -34,3 +34,9 @@ jobs:
               run: |
                 tests/verify.sh windows arm64 full
               shell: "msys2 {0}"
+
+            - name: Upload arm64 deps
+              uses: actions/upload-artifact@v6
+              with:
+                name: arturo-deps-windows-arm64
+                path: ${{ env.arturoDepsPath }}
