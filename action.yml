@@ -368,6 +368,7 @@ runs:
           if: env.os == 'windows' && inputs.artifacts_only != 'true'
           uses: msys2/setup-msys2@v2
           with:
+            msystem: ${{ env.msys_system }}
             update: true
             cache: true
             suppress-deprecation-warnings: msystem-mingw64
@@ -376,8 +377,8 @@ runs:
               base-devel
               p7zip
               unzip
-              mingw-w64-x86_64-toolchain
-              ${{ inputs.do == 'compile' && env.mode == 'full' && 'mingw-w64-x86_64-mpfr' || '' }}
+              ${{ env.msys_pkg }}-toolchain
+              ${{ inputs.do == 'compile' && env.mode == 'full' && format('{0}-mpfr', env.msys_pkg) || '' }}
  
         ######################################
         ######################################
