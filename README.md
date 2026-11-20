@@ -161,7 +161,7 @@ jobs:
 | OS | Architecture | Mode | Fetch | Compile | Runner |
 |----|--------------|------|:-----:|:-------:|--------|
 | Linux | amd64, arm64 | mini, full | ✅ | ✅ | ubuntu-latest, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-24.04 |
-| Linux | amd64 | noui | ❌ | ✅ | ubuntu-latest, ubuntu-24.04 |
+| Linux | amd64, arm64 | noui | ❌ | ✅ | ubuntu-latest, ubuntu-24.04, ubuntu-24.04-arm |
 | Windows | amd64 | mini, full | ✅ | ✅ | windows-latest |
 | Windows | arm64 | mini, full | ❌ | ✅ | windows-11-arm |
 | macOS | amd64, arm64 | mini, full | ✅ | ✅ | macOS-15-intel, macos-latest |
@@ -170,7 +170,7 @@ jobs:
 
 > [!NOTE]
 > ### No-UI builds
-> `mode: noui` is a full build without anything UI-related (`webview`, dialogs & clipboard): on Linux, that means no GTK/WebKit to install - nor to link against. It's meant for headless setups (servers, containers, CI) where everything else of the full build is still wanted. For now, it's available in compile mode only (`do: compile`).
+> `mode: noui` (Linux only) is a full build without anything UI-related (`webview`, dialogs & clipboard): that means no GTK/WebKit to install - nor to link against. It's meant for headless setups (servers, containers, CI) where everything else of the full build is still wanted. For now, it's available in compile mode only (`do: compile`).
 
 > [!NOTE]
 > ### Windows on ARM
