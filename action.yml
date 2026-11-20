@@ -169,7 +169,7 @@ runs:
 
         - name: Export runtime flags
           run: |
-            if [ "${{ env.os }}" = "web" ] || [ "${{ env.mode }}" = "safe" ]; then
+            if [ "${{ env.os }}" = "web" ]; then
                 echo "arturoCanRun=false" >> $GITHUB_ENV
             else
                 echo "arturoCanRun=true" >> $GITHUB_ENV
