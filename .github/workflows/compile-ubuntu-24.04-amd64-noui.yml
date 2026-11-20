@@ -28,7 +28,6 @@ jobs:
               with: 
                 do: compile
                 mode: noui
-                src: noui-mode # TEMPORARY: until the Arturo side is merged
                 token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Test Arturo
