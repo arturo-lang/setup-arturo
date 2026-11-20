@@ -539,15 +539,9 @@ runs:
         - name: Build Arturo (Windows)
           if: inputs.do == 'compile' && env.os == 'windows'
           run: |
-            export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH
-
-            cd arturo-src
-
-            ./build.nims --install --mode ${{ env.mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
-            cd ..
-            
             mkdir bin
             # runtime DLLs: from S3 (deps/amd64 or deps/arm64)
+            # - fetched before building: e.g. --pgo's training run needs them too
             runtime_dlls="libwinpthread-1.dll"
 
             if [ "${{ env.mode }}" = "full" ]; then
@@ -570,6 +564,14 @@ runs:
             done
 
             curl -L https://curl.se/ca/cacert.pem -o bin/cacert.pem
+
+            # (+ bin/ at the end of the PATH: to fill in whatever's missing, without shadowing anything)
+            export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH:"${{ github.workspace }}/bin"
+
+            cd arturo-src
+
+            ./build.nims --install --mode ${{ env.mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
+            cd ..
 
             cp arturo-src/bin/arturo.exe bin
 
