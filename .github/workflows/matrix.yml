@@ -30,9 +30,11 @@ jobs:
                     - {os: linux,   arch: amd64,                        do: compile}
                     - {os: linux,   arch: amd64,    support: legacy,    do: compile}
                     - {os: linux,   arch: amd64,    mode: mini,         do: compile}
+                    - {os: linux,   arch: amd64,    mode: noui,         do: compile}
                     - {os: linux,   arch: arm64,                        do: compile}
                     - {os: linux,   arch: arm64,    support: legacy,    do: compile}
                     - {os: linux,   arch: arm64,    mode: mini,         do: compile}
+                    - {os: linux,   arch: arm64,    mode: noui,         do: compile}
                     - {os: freebsd, arch: amd64,                        do: compile}
                     - {os: freebsd, arch: amd64,    mode: mini,         do: compile}
                     - {os: macos,   arch: amd64,                        do: compile}
