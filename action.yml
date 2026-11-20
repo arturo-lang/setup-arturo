@@ -6,7 +6,7 @@ branding:
 
 inputs:
     mode:
-        description: 'Build mode (mini, full, docgen, safe)'
+        description: 'Build mode (mini, full, noui, docgen, safe)'
         default: 'full'
     token:
         description: 'GITHUB_TOKEN secret'
@@ -169,7 +169,7 @@ runs:
 
         - name: Export runtime flags
           run: |
-            if [ "${{ env.os }}" = "web" ] || [ "${{ env.mode }}" = "safe" ]; then
+            if [ "${{ env.os }}" = "web" ]; then
                 echo "arturoCanRun=false" >> $GITHUB_ENV
             else
                 echo "arturoCanRun=true" >> $GITHUB_ENV
@@ -312,7 +312,12 @@ runs:
             done
             
             if [ "${{ env.mode }}" != "mini" ]; then
-                sudo apt-get install -y libgtk-3-dev libmpfr-dev
+                sudo apt-get install -y libmpfr-dev
+            fi
+
+            # UI-related (not needed for noui builds)
+            if [ "${{ env.mode }}" = "full" ]; then
+                sudo apt-get install -y libgtk-3-dev
                 
                 if [ "${{ env.support }}" = "legacy" ]; then
                     for i in 1 2 3; do

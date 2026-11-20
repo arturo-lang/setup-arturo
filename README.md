@@ -143,7 +143,7 @@ jobs:
 | `token` | GitHub token | *required* | Use `${{ secrets.GITHUB_TOKEN }}` |
 | `do` | `fetch`, `compile` | `fetch` | Fetch release or compile from source |
 | `from` | `latest`, `stable` | `stable` | Source repository for fetch mode (`latest` = nightly builds) |
-| `mode` | `mini`, `full` | `full` | Build configuration |
+| `mode` | `mini`, `full`, `noui` | `full` | Build configuration (`noui`: full, minus the UI - compile mode only) |
 | `os` | `linux`, `windows`, `macos`, `freebsd`, `web` | auto-detect | Target platform |
 | `arch` | `amd64`, `arm64`, `js` | auto-detect | Target architecture |
 | `support` | `standard`, `legacy` | auto-detect | For older Ubuntu systems (webkit 4.0 vs 4.1) |
@@ -161,11 +161,16 @@ jobs:
 | OS | Architecture | Mode | Fetch | Compile | Runner |
 |----|--------------|------|:-----:|:-------:|--------|
 | Linux | amd64, arm64 | mini, full | ✅ | ✅ | ubuntu-latest, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-24.04 |
+| Linux | amd64 | noui | ❌ | ✅ | ubuntu-latest, ubuntu-24.04 |
 | Windows | amd64 | mini, full | ✅ | ✅ | windows-latest |
 | Windows | arm64 | mini, full | ❌ | ✅ | windows-11-arm |
 | macOS | amd64, arm64 | mini, full | ✅ | ✅ | macOS-15-intel, macos-latest |
 | FreeBSD | amd64 | mini, full | ✅ | ✅ | ubuntu-latest (via VM) |
 | Web | js | mini | ✅ | ✅ | ubuntu-latest |
+
+> [!NOTE]
+> ### No-UI builds
+> `mode: noui` is a full build without anything UI-related (`webview`, dialogs & clipboard): on Linux, that means no GTK/WebKit to install - nor to link against. It's meant for headless setups (servers, containers, CI) where everything else of the full build is still wanted. For now, it's available in compile mode only (`do: compile`).
 
 > [!NOTE]
 > ### Windows on ARM

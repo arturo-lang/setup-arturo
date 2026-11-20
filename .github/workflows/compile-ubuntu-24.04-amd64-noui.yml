@@ -1,0 +1,43 @@
+name: Compile
+
+on:
+    push:
+        paths-ignore:
+            - 'LICENSE'
+            - '*.md'
+        branches:
+            - main
+    pull_request:
+        paths-ignore:
+            - 'LICENSE'
+            - '*.md'
+    workflow_dispatch:
+
+concurrency: 
+    group: ${{ github.workflow }}-ubuntu-2404-amd64-noui-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    ubuntu-2404-amd64-noui:
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v6
+            
+            - name: Install Arturo
+              uses: ./
+              with: 
+                do: compile
+                mode: noui
+                token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Test Arturo
+              run: |
+                tests/verify.sh linux amd64 noui
+
+            - name: Check that nothing UI-related is linked
+              run: |
+                ldd "$(command -v arturo)"
+                if ldd "$(command -v arturo)" | grep -q -E 'gtk|webkit'; then
+                    echo "UNEXPECTED: noui build links against GTK/WebKit"
+                    exit 1
+                fi
