@@ -166,6 +166,7 @@ jobs:
 | Windows | arm64 | mini, full | ❌ | ✅ | windows-11-arm |
 | macOS | amd64, arm64 | mini, full | ✅ | ✅ | macOS-15-intel, macos-latest |
 | FreeBSD | amd64 | mini, full | ✅ | ✅ | ubuntu-latest (via VM) |
+| FreeBSD | arm64 | mini, full | ❌ | ✅ | ubuntu-latest (via VM, emulated - slow) |
 | Web | js | mini | ✅ | ✅ | ubuntu-latest |
 
 > [!NOTE]

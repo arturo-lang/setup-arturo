@@ -1,0 +1,43 @@
+name: Compile
+
+on:
+    push:
+        paths-ignore:
+            - 'LICENSE'
+            - '*.md'
+        branches:
+            - main
+    pull_request:
+        paths-ignore:
+            - 'LICENSE'
+            - '*.md'
+    workflow_dispatch:
+
+concurrency: 
+    group: ${{ github.workflow }}-freebsd-arm64-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    freebsd-arm64:
+        strategy:
+            matrix:
+                mode: [full, mini]
+            fail-fast: false
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            
+            - name: Install Arturo
+              uses: ./
+              with: 
+                do: compile
+                os: freebsd
+                arch: arm64
+                mode: ${{ matrix.mode }}
+                token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Test Arturo
+              run: |
+                cd $GITHUB_WORKSPACE
+                bash tests/verify.sh freebsd arm64 ${{ matrix.mode }}
+              shell: freebsd {0}
