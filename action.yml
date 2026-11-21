@@ -6,7 +6,7 @@ branding:
 
 inputs:
     mode:
-        description: 'Build mode (mini, full, noui, docgen, safe)'
+        description: 'Build mode (mini, full, noui)'
         default: 'full'
     token:
         description: 'GITHUB_TOKEN secret'
