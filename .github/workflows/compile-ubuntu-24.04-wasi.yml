@@ -1,0 +1,38 @@
+name: Compile
+
+on:
+    push:
+        paths-ignore:
+            - 'LICENSE'
+            - '*.md'
+        branches:
+            - main
+    pull_request:
+        paths-ignore:
+            - 'LICENSE'
+            - '*.md'
+    workflow_dispatch:
+
+concurrency: 
+    group: ${{ github.workflow }}-ubuntu-2404-wasi-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    ubuntu-2404-wasi:
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v6
+            
+            - name: Install Arturo
+              uses: ./
+              with: 
+                do: compile
+                os: wasi
+                arch: wasm32
+                token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Test Arturo
+              run: |
+                export ARTURO="wasmtime run --dir /::/ --env HOME --env PWD $HOME/.arturo/bin/arturo.wasm"
+                tests/verify.sh wasi wasm32 mini
+                $ARTURO tests/test.art
