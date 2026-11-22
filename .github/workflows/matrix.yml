@@ -48,6 +48,7 @@ jobs:
                     - {os: windows, arch: arm64,                        do: compile}
                     - {os: windows, arch: arm64,    mode: mini,         do: compile}
                     - {os: web,     arch: js,       mode: mini,         do: compile}
+                    - {os: wasi,    arch: wasm32,   mode: mini,         do: compile}
 
                     - {os: linux,   arch: amd64,                        do: fetch,      from: latest}
                     - {os: linux,   arch: amd64,    support: legacy,    do: fetch,      from: latest}
