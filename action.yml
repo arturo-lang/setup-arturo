@@ -362,7 +362,7 @@ runs:
               if [ "${{ inputs.do }}" = "compile" ]; then
                   pkg install -y nim git
                   if [ "${{ env.mode }}" = "full" ]; then
-                      pkg install -y pkgconf openssl
+                      pkg install -y pkgconf
                   fi
               fi
             run: |
@@ -563,8 +563,6 @@ runs:
                 # "+" has to be encoded in S3 URLs (e.g. libc++.dll)
                 curl -fL "https://arturo-lang.s3.amazonaws.com/deps/${{ env.arch }}/${dll//+/%2B}" -o "bin/$dll"
             done
-
-            curl -L https://curl.se/ca/cacert.pem -o bin/cacert.pem
 
             # (+ bin/ at the end of the PATH: to fill in whatever's missing, without shadowing anything)
             export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH:"${{ github.workspace }}/bin"
