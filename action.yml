@@ -564,8 +564,6 @@ runs:
                 curl -fL "https://arturo-lang.s3.amazonaws.com/deps/${{ env.arch }}/${dll//+/%2B}" -o "bin/$dll"
             done
 
-            curl -L https://curl.se/ca/cacert.pem -o bin/cacert.pem
-
             # (+ bin/ at the end of the PATH: to fill in whatever's missing, without shadowing anything)
             export PATH="${{ github.workspace }}/nim/nim-2.4.2/bin":$PATH:"${{ github.workspace }}/bin"
 
