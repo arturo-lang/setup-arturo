@@ -362,7 +362,7 @@ runs:
               if [ "${{ inputs.do }}" = "compile" ]; then
                   pkg install -y nim git
                   if [ "${{ env.mode }}" = "full" ]; then
-                      pkg install -y pkgconf openssl
+                      pkg install -y pkgconf
                   fi
               fi
             run: |
