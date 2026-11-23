@@ -27,6 +27,7 @@ jobs:
               uses: ./
               with: 
                 do: compile
+                src: wasi-build
                 os: wasi
                 arch: wasm32
                 token: ${{ secrets.GITHUB_TOKEN }}
