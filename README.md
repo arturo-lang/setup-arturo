@@ -144,8 +144,8 @@ jobs:
 | `do` | `fetch`, `compile` | `fetch` | Fetch release or compile from source |
 | `from` | `latest`, `stable` | `stable` | Source repository for fetch mode (`latest` = nightly builds) |
 | `mode` | `mini`, `full`, `noui` | `full` | Build configuration (`noui`: full, minus the UI - compile mode only) |
-| `os` | `linux`, `windows`, `macos`, `freebsd`, `web` | auto-detect | Target platform |
-| `arch` | `amd64`, `arm64`, `js` | auto-detect | Target architecture |
+| `os` | `linux`, `windows`, `macos`, `freebsd`, `web`, `wasi` | auto-detect | Target platform |
+| `arch` | `amd64`, `arm64`, `js`, `wasm32` | auto-detect | Target architecture |
 | `support` | `standard`, `legacy` | auto-detect | For older Ubuntu systems (webkit 4.0 vs 4.1) |
 | `src` | branch/tag/commit | latest | Specific Arturo version (compile mode) |
 | `metadata` | string | - | Build metadata (compile mode) |
@@ -168,10 +168,21 @@ jobs:
 | FreeBSD | amd64 | mini, full | ✅ | ✅ | ubuntu-latest (via VM) |
 | FreeBSD | arm64 | mini, full | ❌ | ✅ | ubuntu-latest (via VM, emulated - slow) |
 | Web | js | mini | ✅ | ✅ | ubuntu-latest |
+| WASI | wasm32 | mini | ❌ | ✅ | ubuntu-latest |
 
 > [!NOTE]
 > ### No-UI builds
 > `mode: noui` (Linux only) is a full build without anything UI-related (`webview`, dialogs & clipboard): that means no GTK/WebKit to install - nor to link against. It's meant for headless setups (servers, containers, CI) where everything else of the full build is still wanted. For now, it's available in compile mode only (`do: compile`).
+
+> [!NOTE]
+> ### WASI builds
+> `os: wasi` (or `arch: wasm32`) builds Arturo as a WebAssembly binary (`arturo.wasm`), for WASI runtimes - outside the browser. It's always a mini build, with 32-bit integers; and there are no processes, networking or signals. The action installs [wasmtime](https://wasmtime.dev) to run it with, e.g.:
+>
+> ```bash
+> wasmtime run --dir /::/ --env HOME --env PWD ~/.arturo/bin/arturo.wasm script.art
+> ```
+>
+> For now, it's available in compile mode only (`do: compile`).
 
 > [!NOTE]
 > ### Windows on ARM

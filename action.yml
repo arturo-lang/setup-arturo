@@ -12,7 +12,7 @@ inputs:
         description: 'GITHUB_TOKEN secret'
         required: true
     arch:
-        description: 'Target architecture (amd64, arm64, js)'
+        description: 'Target architecture (amd64, arm64, js, wasm32)'
         default: 'amd64'
     src:
         description: 'Arturo version/ref to use'
@@ -21,7 +21,7 @@ inputs:
         description: 'Embeddable build metadata'
         default: ''
     os:
-        description: 'Target OS (linux, windows, macos, freebsd, web)'
+        description: 'Target OS (linux, windows, macos, freebsd, web, wasi)'
         default: 'linux'
     support:
         description: 'Build support level (empty=standard, legacy=older systems)'
@@ -112,6 +112,13 @@ runs:
                 detected_build_mode="web"
                 artifact_arch="js"
                 build_arch="amd64"
+            # ...and WASI/wasm32 ones
+            elif [ "$detected_os" = "wasi" ] || [ "$detected_arch" = "wasm32" ]; then
+                detected_os="wasi"
+                detected_mode="mini"
+                detected_build_mode="wasi"
+                artifact_arch="wasm32"
+                build_arch="amd64"
             else
                 detected_mode="${{ inputs.mode }}"
                 [ -z "$detected_mode" ] && detected_mode="full"
@@ -130,7 +137,7 @@ runs:
             echo "src=${{ inputs.src }}" >> $GITHUB_ENV
             echo "metadata=${{ inputs.metadata }}" >> $GITHUB_ENV
             echo "release=${{ inputs.release }}" >> $GITHUB_ENV
-            if [ "${{ inputs.pgo }}" = "true" ] && [ "$detected_build_mode" != "web" ]; then
+            if [ "${{ inputs.pgo }}" = "true" ] && [ "$detected_build_mode" != "web" ] && [ "$detected_build_mode" != "wasi" ]; then
                 echo "pgo=true" >> $GITHUB_ENV
             else
                 echo "pgo=false" >> $GITHUB_ENV
@@ -169,7 +176,7 @@ runs:
 
         - name: Export runtime flags
           run: |
-            if [ "${{ env.os }}" = "web" ]; then
+            if [ "${{ env.os }}" = "web" ] || [ "${{ env.os }}" = "wasi" ]; then
                 echo "arturoCanRun=false" >> $GITHUB_ENV
             else
                 echo "arturoCanRun=true" >> $GITHUB_ENV
@@ -302,7 +309,7 @@ runs:
         ######################################
 
         - name: Install dependencies (Linux)
-          if: (env.os == 'linux' || env.os == 'web') && inputs.artifacts_only != 'true'
+          if: (env.os == 'linux' || env.os == 'web' || env.os == 'wasi') && inputs.artifacts_only != 'true'
           run: |
             # Multiple update attempts to handle mirror sync issues
             for i in 1 2 3; do
@@ -340,6 +347,32 @@ runs:
 
             if [ "${{ inputs.do }}" = "compile" ] && [ "${{ env.os }}" = "web" ]; then
                 npm install -g uglify-js
+            fi
+          shell: bash
+
+        - name: Install WebAssembly toolchain (WASI)
+          if: env.os == 'wasi' && inputs.artifacts_only != 'true'
+          run: |
+            # the runtime (always: to be able to actually run Arturo)
+            # + the C compiler (wasi-sdk) & Binaryen's wasm-opt (for compiling)
+            wasmtime_version="51.0.0"
+            wasi_sdk_version="34"
+            binaryen_version="133"
+
+            cpu=$([ "${{ runner.arch }}" = "ARM64" ] && echo "aarch64" || echo "x86_64")
+            tools="$HOME/.wasi-tools"
+            mkdir -p "$tools"
+
+            curl -fsSL "https://github.com/bytecodealliance/wasmtime/releases/download/v${wasmtime_version}/wasmtime-v${wasmtime_version}-${cpu}-linux.tar.xz" | tar -xJ -C "$tools"
+            echo "$tools/wasmtime-v${wasmtime_version}-${cpu}-linux" >> $GITHUB_PATH
+
+            if [ "${{ inputs.do }}" = "compile" ]; then
+                sdk_cpu=$([ "$cpu" = "aarch64" ] && echo "arm64" || echo "x86_64")
+                curl -fsSL "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${wasi_sdk_version}/wasi-sdk-${wasi_sdk_version}.0-${sdk_cpu}-linux.tar.gz" | tar -xz -C "$tools"
+                echo "WASI_SDK_PATH=$tools/wasi-sdk-${wasi_sdk_version}.0-${sdk_cpu}-linux" >> $GITHUB_ENV
+
+                curl -fsSL "https://github.com/WebAssembly/binaryen/releases/download/version_${binaryen_version}/binaryen-version_${binaryen_version}-${cpu}-linux.tar.gz" | tar -xz -C "$tools"
+                echo "WASM_OPT=$tools/binaryen-version_${binaryen_version}/bin/wasm-opt" >> $GITHUB_ENV
             fi
           shell: bash
 
@@ -472,8 +505,8 @@ runs:
         ## Nim installation
         ##====================================
 
-        - name: Install Nim (Linux/Web)
-          if: inputs.do == 'compile' && (env.os == 'linux' || env.os == 'web')
+        - name: Install Nim (Linux/Web/WASI)
+          if: inputs.do == 'compile' && (env.os == 'linux' || env.os == 'web' || env.os == 'wasi')
           run: |
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             echo >> /home/runner/.bashrc
@@ -525,11 +558,17 @@ runs:
         ## Compilation
         ##====================================
         
-        - name: Build Arturo (Linux/macOS/Web)
-          if: inputs.do == 'compile' && (env.os == 'linux' || env.os == 'macos' || env.os == 'web')
+        - name: Build Arturo (Linux/macOS/Web/WASI)
+          if: inputs.do == 'compile' && (env.os == 'linux' || env.os == 'macos' || env.os == 'web' || env.os == 'wasi')
           run: |
             cd arturo-src
             ./build.nims --install --mode ${{ env.build_mode }} --arch ${{ env.arch }} --log${{ env.release == 'true' && ' --release' || '' }}${{ env.pgo == 'true' && ' --pgo' || '' }}
+
+            # WASI builds can't be installed: so, we do it ourselves
+            if [ "${{ env.os }}" = "wasi" ]; then
+                mkdir -p "$HOME/.arturo/bin"
+                cp bin/arturo.wasm "$HOME/.arturo/bin/"
+            fi
             
             echo "$HOME/.arturo/bin" >> $GITHUB_PATH
             echo "arturoDistPath=$HOME/.arturo/bin" >> $GITHUB_ENV
